@@ -1,0 +1,21 @@
+name: media_editor
+description: Media Editor - video, image and audio tools (Arabic / English).
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  file_picker: ^8.1.2
+  image: ^4.2.0
+  pdf: ^3.11.1
+  archive: ^3.6.1
+  ffmpeg_kit_flutter_new: any
+
+flutter:
+  uses-material-design: true
