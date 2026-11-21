@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'image_tools.dart';
 import 'media_tools.dart';
 import 'overlay_tool.dart';
+import 'designer_tool.dart';
 import 'strings.dart';
 import 'tools.dart';
 
@@ -53,6 +54,13 @@ class ToolScreen extends StatelessWidget {
         ], run: cropRun, ext: (_) => 'png', suffix: 'cropped'),
       'i_collage' => const MultiImageTool(mode: MultiMode.collage),
       'i_blend' => const MultiImageTool(mode: MultiMode.blend),
+      'i_bg' => ImageTool(opts: [
+          Opt('m', 'النمط', 'Mode', 0, 1, 0, choices: const [('من الأطراف', 'From edges'), ('كل المطابق', 'All matching')]),
+          Opt('t', 'التسامح مع اللون', 'Color tolerance', 5, 100, 30, divisions: 95),
+          Opt('f', 'نعومة الحواف', 'Edge softness', 0, 6, 1, divisions: 6),
+        ], run: bgRun, ext: (_) => 'png', suffix: 'nobg'),
+      'i_wm_design' => const DesignerTool(logo: false),
+      'i_logo' => const DesignerTool(logo: true),
       'i_text' => const OverlayTool(watermark: false),
       'i_wm_add' => const OverlayTool(watermark: true),
       _ => ffmpegTool(tool.id) ?? ComingSoon(tool: tool),

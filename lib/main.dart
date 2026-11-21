@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:media_kit/media_kit.dart';
 import 'shell.dart';
 import 'strings.dart';
 
-void main() => runApp(const MediaEditorApp());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  MediaKit.ensureInitialized();
+  runApp(const MediaEditorApp());
+}
 
 ThemeData _theme(Brightness b) => ThemeData(
       useMaterial3: true,

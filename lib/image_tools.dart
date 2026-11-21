@@ -63,6 +63,108 @@ Uint8List cropRun(Uint8List b, Vals v) {
   return img.encodePng(img.copyCrop(i, x: x, y: y, width: w, height: h));
 }
 
+Future<Uint8List> runImageIso(
+        Uint8List Function(Uint8List, Vals) run, Uint8List src, Vals v) =>
+    Isolate.run(() => run(src, v));
+
+Future<Uint8List> runMultiIso(int mode, List<Uint8List> files, Vals v) =>
+    Isolate.run(() async {
+      switch (mode) {
+        case 0:
+          return mergeRun(files, v);
+        case 1:
+          return await pdfRun(files, v);
+        case 2:
+          return collageRun(files, v);
+        default:
+          return blendRun(files, v);
+      }
+    });
+
+/// Background remover: removes the colour found around the image border.
+Uint8List bgRun(Uint8List b, Vals v) {
+  final i = _dec(b).convert(numChannels: 4);
+  final w = i.width, h = i.height;
+  double r = 0, g = 0, bl = 0;
+  var n = 0;
+  void acc(int x, int y) {
+    final p = i.getPixel(x, y);
+    r += p.r;
+    g += p.g;
+    bl += p.b;
+    n++;
+  }
+  for (var x = 0; x < w; x++) {
+    acc(x, 0);
+    acc(x, h - 1);
+  }
+  for (var y = 0; y < h; y++) {
+    acc(0, y);
+    acc(w - 1, y);
+  }
+  r /= n;
+  g /= n;
+  bl /= n;
+  final tol = v['t']! * 4.4;
+  bool isBg(int x, int y) {
+    final p = i.getPixel(x, y);
+    final dr = p.r - r, dg = p.g - g, db = p.b - bl;
+    return math.sqrt(dr * dr + dg * dg + db * db) <= tol;
+  }
+
+  final mask = Uint8List(w * h)..fillRange(0, w * h, 255);
+  if (v['m']!.round() == 1) {
+    for (var y = 0; y < h; y++) {
+      for (var x = 0; x < w; x++) {
+        if (isBg(x, y)) mask[y * w + x] = 0;
+      }
+    }
+  } else {
+    final stack = <int>[];
+    void push(int x, int y) {
+      if (x < 0 || y < 0 || x >= w || y >= h) return;
+      final k = y * w + x;
+      if (mask[k] == 0 || !isBg(x, y)) return;
+      mask[k] = 0;
+      stack.add(k);
+    }
+    for (var x = 0; x < w; x++) {
+      push(x, 0);
+      push(x, h - 1);
+    }
+    for (var y = 0; y < h; y++) {
+      push(0, y);
+      push(w - 1, y);
+    }
+    while (stack.isNotEmpty) {
+      final k = stack.removeLast();
+      final x = k % w, y = k ~/ w;
+      push(x + 1, y);
+      push(x - 1, y);
+      push(x, y + 1);
+      push(x, y - 1);
+    }
+  }
+  final f = v['f']!.round();
+  if (f > 0) {
+    final m = img.Image(width: w, height: h, numChannels: 1);
+    for (var y = 0; y < h; y++) {
+      for (var x = 0; x < w; x++) {
+        m.setPixelR(x, y, mask[y * w + x]);
+      }
+    }
+    img.gaussianBlur(m, radius: f);
+    for (final p in i) {
+      p.a = m.getPixel(p.x, p.y).r;
+    }
+  } else {
+    for (final p in i) {
+      p.a = mask[p.y * w + p.x];
+    }
+  }
+  return img.encodePng(i);
+}
+
 // ---------- single image tool ----------
 class Opt {
   final String key, ar, en;
@@ -115,7 +217,7 @@ class _ImageToolState extends State<ImageTool> {
     final run = widget.run;
     final vals = Vals.of(v);
     try {
-      final r = await Isolate.run(() => run(s, vals));
+      final r = await runImageIso(run, s, vals);
       if (mounted) setState(() => out = r);
     } catch (e) {
       if (mounted) {
@@ -365,18 +467,7 @@ class _MultiImageToolState extends State<MultiImageTool> {
     final vals = <String, double>{'d': dir.toDouble(), 'g': gap, 'c': cols.toDouble(), 'm': bm.toDouble(), 'a': mix};
     final mode = widget.mode;
     try {
-      final r = await Isolate.run(() async {
-        switch (mode) {
-          case MultiMode.pdf:
-            return await pdfRun(list, vals);
-          case MultiMode.merge:
-            return mergeRun(list, vals);
-          case MultiMode.collage:
-            return collageRun(list, vals);
-          case MultiMode.blend:
-            return blendRun(list, vals);
-        }
-      });
+      final r = await runMultiIso(mode.index, list, vals);
       if (mounted) setState(() => out = r);
     } catch (e) {
       if (mounted) {

@@ -16,6 +16,9 @@ dependencies:
   pdf: ^3.11.1
   archive: ^3.6.1
   ffmpeg_kit_flutter_new: any
+  media_kit: any
+  media_kit_video: any
+  media_kit_libs_video: any
 
 flutter:
   uses-material-design: true

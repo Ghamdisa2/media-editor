@@ -50,6 +50,7 @@ const tools = <Tool>[
   Tool('a_mix', Cat.audio, Icons.tune, 'مزج الأصوات', 'Audio Mixer'),
   Tool('a_trim', Cat.audio, Icons.content_cut, 'اقتطاع جزء من الصوت', 'Audio Trimmer'),
   Tool('a_enhance', Cat.audio, Icons.graphic_eq, 'تحسين الصوت وإزالة الضجيج', 'Audio Enhancer', 3),
+  Tool('a_fx', Cat.audio, Icons.surround_sound, 'مؤثرات الصوت', 'Audio Effects', 0),
   Tool('a_speed', Cat.audio, Icons.speed, 'تسريع وإبطاء الصوت', 'Audio Speeder'),
   Tool('a_convert', Cat.audio, Icons.swap_horiz, 'تحويل صيغة الصوت', 'Audio Converter'),
   Tool('a_stt', Cat.audio, Icons.subtitles, 'الصوت إلى نص', 'Audio to Text', 3),
@@ -60,5 +61,6 @@ const implemented = <String>{
   'v_crop','v_blur','v_trim','v_enhance','v_merge','v_mp3','v_flip','v_speed','v_frame',
   'v_convert','v_compress','v_text','v_wm_add','v_wm_remove',
   'i_crop','i_collage','i_blend','i_text','i_wm_add',
+  'i_bg','i_wm_design','i_logo','a_fx',
   'a_merge','a_mix','a_trim','a_enhance','a_speed','a_convert',
 };
